@@ -1,0 +1,38 @@
+{
+    "name" : "tomatom/picture-bundle",
+    "description" : "Symfony bundle",
+    "type" : "symfony-bundle",
+    "authors" : [{
+        "name" : "Tom Atom",
+        "email" : "tom@tomatom.com"
+    }, {
+        "name" : "Tomas Beran",
+        "email" : "b3da@b3da.net"
+    }],
+    "keywords" : [
+        "symfony picture",
+        "picture bundle",
+        "symfony image",
+        "image bundle",
+        "symfony srcset",
+        "srcset bundle"
+    ],
+    "license" : [
+        "GPLV2"
+    ],
+    "require" : {
+        "php": ">=5.5.9",
+        "symfony/framework-bundle": "~3.3"
+    },
+    "autoload" : {
+        "psr-0" : {
+            "TomAtom\\PictureBundle" : ""
+        }
+    },
+    "target-dir" : "TomAtom/PictureBundle",
+    "extra" : {
+        "branch-alias" : {
+            "dev-master" : "1.0-dev"
+        }
+    }
+}
