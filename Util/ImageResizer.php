@@ -32,14 +32,19 @@ class ImageResizer {
     protected $basePath;
 
     /**
+     * @var array $breakpoints
+     */
+    protected $breakpoints;
+
+    /**
      * @var string $convertedDir
      */
     protected $convertedDir;
 
     /**
-     * @var array $breakpoints
+     * @var string $webSubdir;
      */
-    protected $breakpoints;
+    protected $webSubdir;
 
     /**
      * ImageResizer constructor.
@@ -92,7 +97,7 @@ class ImageResizer {
      * @param Image $image
      * @return Image
      */
-    protected function checkForConvertedOrConvert($image) {
+    protected function checkForConvertedOrConvert(Image $image) {
         if (!$image->getConverted() || count($image->getConverted()) !== count($this->breakpoints)) {
             $this->checkForDirectoryOrCreateNew();
             $fullImagePath = $image->getFullPath();
@@ -111,9 +116,19 @@ class ImageResizer {
      * @param Image $image
      * @return string
      */
-    protected function getFullImagePath($image) {
+    protected function getFullImagePath(Image $image) {
+        $webSubdir = $this->getUsedWebSubdir($image);
         $originalAssetPath = $image->getOriginal();
-        return $this->basePath . '/web/bundles'. explode('bundles', $originalAssetPath)[1];
+        return trim($this->basePath . '/web/' . $webSubdir . explode($webSubdir, $originalAssetPath)[1]);
+    }
+
+    /**
+     * @param Image $image
+     * @return string
+     */
+    protected function getConvertedAssetUrl(Image $image, $convertedFullPath) {
+        $webSubdir = $this->getUsedWebSubdir($image);
+        return explode($webSubdir, $image->getOriginal())[0] . explode('web/', $convertedFullPath)[1];
     }
 
     /**
@@ -134,6 +149,35 @@ class ImageResizer {
         }
     }
 
+    protected function getWebSubdirs() {
+        $webSubdirs = $this->runProcess('cd ' . $this->basePath . '/web && for i in $(ls -d */); do echo ${i}; done');
+        return explode("\n", trim($webSubdirs));
+    }
+
+    /**
+     * @param Image $image
+     * @throws \LogicException
+     * @return string
+     */
+    protected function getUsedWebSubdir(Image $image) {
+        if (strlen($this->webSubdir) > 0) {
+            return $this->webSubdir; // no need to do this for every breakpoint
+        }
+        $webSubdirs = $this->getWebSubdirs();
+        $originalAssetPath = $image->getOriginal();
+        $result = array_filter($webSubdirs, function ($s) use ($originalAssetPath) {
+            if (strpos($originalAssetPath, $s) !== false) {
+                return $s;
+            }
+        });
+        $result = array_values($result);
+        if (!$result || count($result) === 0) {
+            throw new \LogicException('getUsedWebSubdir failed to find used dir under web/');
+        }
+        $this->webSubdir = $result[0];
+        return $this->webSubdir;
+    }
+
     protected function convertToBreakpoint(Image $image, $breakpoint) {
         $converteds = count($image->getConverted()) > 0 ? $image->getConverted() : [];
         $exists = array_filter($converteds, function ($c) use ($breakpoint) {
@@ -145,7 +189,7 @@ class ImageResizer {
             $converted = [
                 'breakpoint' => $breakpoint,
                 'path' => $convertedFullPath,
-                'asset' => explode('bundles', $image->getOriginal())[0] . explode('web/', $convertedFullPath)[1],
+                'asset' => $this->getConvertedAssetUrl($image, $convertedFullPath),
             ];
             $this->resizeImageExternally($image->getFullPath(), $convertedFullPath, $breakpoint, 0, false, true, 65);
             $converteds[] = $converted;
@@ -158,7 +202,17 @@ class ImageResizer {
         }
     }
 
-    public function resizeImageExternally($fullImagePath, $newFullImagePath, $widthOrSize, $height = 0, $squareCrop = false, $autoRotate = true, $jpegQuality = 69) {
+    /**
+     * @param string $fullImagePath
+     * @param string $newFullImagePath
+     * @param integer $widthOrSize
+     * @param integer $height
+     * @param boolean $squareCrop
+     * @param boolean $autoRotate
+     * @param integer $jpegQuality
+     * @return string
+     */
+    protected function resizeImageExternally($fullImagePath, $newFullImagePath, $widthOrSize, $height = 0, $squareCrop = false, $autoRotate = true, $jpegQuality = 69) {
         $ext = $this->getFilenameAndExtensionFromPath($fullImagePath)[1];
         $isJpeg = $ext === 'jpg' || $ext = 'jpeg';
         $cmd = 'vipsthumbnail ' . $fullImagePath . ' -o ' . $newFullImagePath . ($isJpeg ? '[Q=' . $jpegQuality . '] ' : ' ');
@@ -173,10 +227,17 @@ class ImageResizer {
         if ($autoRotate) {
             $cmd .= '-t ';
         }
+        return $this->runProcess($cmd);
+    }
 
+    /**
+     * @param string $cmd
+     * @throws ProcessFailedException
+     * @return string
+     */
+    protected function runProcess($cmd) {
         $process = new Process($cmd);
         $process->run();
-
         if (!$process->isSuccessful()) {
             throw new ProcessFailedException($process);
         }

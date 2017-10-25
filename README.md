@@ -42,8 +42,6 @@ parameters:
 
 ### Todo:
 
-* jpeg quality as param
-
-* cmd for batch converting
-
-* converting of images other than assets (like from 'web/uploads', etc)
+- [ ] jpeg quality as param
+- [ ] cmd for batch converting
+- [x] converting of images other than assets (like from 'web/uploads', etc)
