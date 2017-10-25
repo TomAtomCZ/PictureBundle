@@ -42,6 +42,11 @@ class ImageResizer {
     protected $convertedDir;
 
     /**
+     * @var integer $jpegQuality
+     */
+    protected $jpegQuality;
+
+    /**
      * @var string $webSubdir;
      */
     protected $webSubdir;
@@ -55,8 +60,9 @@ class ImageResizer {
         $this->em = $container->get('doctrine.orm.default_entity_manager');
         $this->fs = new Filesystem();
         $this->basePath = $this->container->getParameter('kernel.project_dir');
-        $this->breakpoints = $this->container->getParameter('tt_picture_breakpoints');
-        $this->convertedDir = $this->container->getParameter('tt_picture_converted_dir');
+        $this->breakpoints = $this->container->hasParameter('tt_picture_breakpoints') ? $this->container->getParameter('tt_picture_breakpoints') : [575, 768, 991, 1199, 1690, 1920];
+        $this->convertedDir = $this->container->hasParameter('tt_picture_converted_dir') ? $this->convertedDir = $this->container->getParameter('tt_picture_converted_dir') : ($this->basePath . '/web/tt_picture');
+        $this->jpegQuality = $this->container->hasParameter('tt_picture_jpeg_quality') ? $this->container->getParameter('tt_picture_jpeg_quality') : 65;
     }
 
     /**
@@ -191,7 +197,7 @@ class ImageResizer {
                 'path' => $convertedFullPath,
                 'asset' => $this->getConvertedAssetUrl($image, $convertedFullPath),
             ];
-            $this->resizeImageExternally($image->getFullPath(), $convertedFullPath, $breakpoint, 0, false, true, 65);
+            $this->resizeImageExternally($image->getFullPath(), $convertedFullPath, $breakpoint, 0, false, true);
             $converteds[] = $converted;
             $image->setConverted($converteds);
             try {
@@ -212,10 +218,10 @@ class ImageResizer {
      * @param integer $jpegQuality
      * @return string
      */
-    protected function resizeImageExternally($fullImagePath, $newFullImagePath, $widthOrSize, $height = 0, $squareCrop = false, $autoRotate = true, $jpegQuality = 69) {
+    protected function resizeImageExternally($fullImagePath, $newFullImagePath, $widthOrSize, $height = 0, $squareCrop = false, $autoRotate = true) {
         $ext = $this->getFilenameAndExtensionFromPath($fullImagePath)[1];
         $isJpeg = $ext === 'jpg' || $ext = 'jpeg';
-        $cmd = 'vipsthumbnail ' . $fullImagePath . ' -o ' . $newFullImagePath . ($isJpeg ? '[Q=' . $jpegQuality . '] ' : ' ');
+        $cmd = 'vipsthumbnail ' . $fullImagePath . ' -o ' . $newFullImagePath . ($isJpeg ? '[Q=' . $this->jpegQuality . '] ' : ' ');
         if ($widthOrSize > 0 && $height > 0) {
             $cmd .= '-s ' . $widthOrSize . 'x' . $height . ' ';
         } elseif ($widthOrSize > 0 && $height === 0) {

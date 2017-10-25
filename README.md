@@ -22,15 +22,16 @@
 ```php
 new TomAtom\PictureBundle\TomAtomPictureBundle(),
 ```
+* update db schema, install assets and clear cache ... and __it's done!__
 
-* add parameters to __parameters.yml(.dist)__ (define your own breakpoints):
+* __optionally__ add parameters to __parameters.yml(.dist)__ (define your own breakpoints etc.):
 ```yaml
+# these are defaults
 parameters:
     tt_picture_breakpoints: [575, 768, 991, 1199, 1690, 1920]
     tt_picture_converted_dir: '%kernel.project_dir%/web/tt_picture'
+    tt_picture_jpeg_quality: 65
 ```
-* update db schema, install assets and clear cache ... and it's done!
-
 
 ### Usage:
 
@@ -42,6 +43,6 @@ parameters:
 
 ### Todo:
 
-- [ ] jpeg quality as param
+- [x] jpeg quality as param
 - [ ] cmd for batch converting
 - [x] converting of images other than assets (like from 'web/uploads', etc)
