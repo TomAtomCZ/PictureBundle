@@ -1,5 +1,7 @@
 # TomAtom/PictureBundle
 
+![picture](picture-light.png)
+
 ### Symfony Bundle for easy &lt;picture&gt;s :)
 
 > define breakpoints and use your assets as picture sources, without annoying image conversions and long code blocks
