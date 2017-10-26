@@ -2,8 +2,8 @@ services:
     tomatom_picture.util.image_resizer:
         class: TomAtom\PictureBundle\Util\ImageResizer
         arguments: ["@service_container"]
-    tomatom_picture.twig.picture_function:
-        class: TomAtom\PictureBundle\Twig\PictureFunction
+    tomatom_picture.twig.picture_extension:
+        class: TomAtom\PictureBundle\Twig\PictureExtension
         arguments: ["@tomatom_picture.util.image_resizer"]
         tags:
           - { name: twig.extension }

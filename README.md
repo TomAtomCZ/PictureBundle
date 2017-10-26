@@ -37,7 +37,10 @@ parameters:
 
 * in template, call (jpg, png and gif are supported):
 ```twig
+{# as function #}
 {{ picture(asset('path/to/asset.jpg')) }}
+{# as filter #}
+{{ asset('path/to/asset.jpg') | picture }}
 ```
 &lt;picture&gt; is generated and image is converted on first render
 

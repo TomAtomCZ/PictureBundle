@@ -4,7 +4,7 @@ namespace TomAtom\PictureBundle\Twig;
 
 use TomAtom\PictureBundle\Util\ImageResizer;
 
-class PictureFunction extends \Twig_Extension
+class PictureExtension extends \Twig_Extension
 {
     /**
      * @var ImageResizer $imageResizer
@@ -13,6 +13,12 @@ class PictureFunction extends \Twig_Extension
 
     public function __construct($imageResizer) {
         $this->imageResizer = $imageResizer;
+    }
+
+    public function getFilters() {
+        return [
+            new \Twig_SimpleFilter('picture', [$this, 'createPicture'], ['is_safe' => ['html']])
+        ];
     }
 
     public function getFunctions() {
@@ -35,6 +41,6 @@ class PictureFunction extends \Twig_Extension
     }
 
     public function getName() {
-        return 'picture';
+        return 'tomatom_picture.twig.picture_extension';
     }
 }

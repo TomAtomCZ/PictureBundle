@@ -59,7 +59,7 @@ class ImageResizer {
         $this->container = $container;
         $this->em = $container->get('doctrine.orm.default_entity_manager');
         $this->fs = new Filesystem();
-        $this->basePath = $this->container->getParameter('kernel.project_dir');
+        $this->basePath = $this->container->hasParameter('kernel.project_dir') ? $this->container->getParameter('kernel.project_dir') : str_replace('/app', '', $this->container->getParameter('kernel.root_dir'));
         $this->breakpoints = $this->container->hasParameter('tt_picture_breakpoints') ? $this->container->getParameter('tt_picture_breakpoints') : [575, 768, 991, 1199, 1690, 1920];
         $this->convertedDir = $this->container->hasParameter('tt_picture_converted_dir') ? $this->convertedDir = $this->container->getParameter('tt_picture_converted_dir') : ($this->basePath . '/web/tt_picture');
         $this->jpegQuality = $this->container->hasParameter('tt_picture_jpeg_quality') ? $this->container->getParameter('tt_picture_jpeg_quality') : 65;
