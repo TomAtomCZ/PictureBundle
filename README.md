@@ -6,17 +6,17 @@
 
 #### Dependencies:
 
-* `vipsthumbnail`
+* `vipsthumbnail` from [libvips](https://jcupitt.github.io/libvips/)
 
-* `symfony/framework-standard-edition "~3.3"`
+* `symfony/framework-standard-edition ">=2.8|~3.3"`
 
 ### Installation:
 
-* you need `vipsthumbnail` !, (install by `sudo apt install libvips-tools`)
+* you need `vipsthumbnail` !, (install by `sudo apt install libvips-tools`, or you can [compile your own or download here](https://jcupitt.github.io/libvips/))
 
 * create project with Symfony framework
 
-* composer require tomatom/picture-bundle "dev-master"
+* composer require tomatom/picture-bundle "1.2"
 
 * add bundle to __AppKernel.php:__
 ```php
@@ -39,13 +39,33 @@ parameters:
 ```twig
 {# as function #}
 {{ picture(asset('path/to/asset.jpg')) }}
+
 {# as filter #}
 {{ asset('path/to/asset.jpg') | picture }}
+
 ```
-&lt;picture&gt; is generated and image is converted on first render
+> __&lt;picture&gt;__ is generated and image is converted on first render
+
+* you can define custom breakpoints and/or jpeg quality for each image, when needed:
+```twig
+{# as function with custom breakpoints defined per image #}
+{{ picture(asset('path/to/asset.jpg'), [300, 600, 1200]) }}
+
+{# as function with custom jpeg quality defined per image #}
+{{ picture(asset('path/to/asset.jpg'), null, 99) }}
+
+
+{# as filter with custom breakpoints defined per image #}
+{{ asset('path/to/asset.jpg') | picture([300, 600, 1200]) }}
+
+{# as filter with custom jpeg quality defined per image #}
+{{ asset('path/to/asset.jpg') | picture(null, 99)) }}
+```
 
 ### Todo:
 
 - [x] jpeg quality as param
+- [x] jpeg quality as param in template
+- [x] breakpoints as param in template
 - [ ] cmd for batch converting
 - [x] converting of images other than assets (like from 'web/uploads', etc)

@@ -74,10 +74,18 @@ class ImageResizer {
 
     /**
      * @param string $assetFilename
+     * @param array|null $customBreakpoints
+     * @param integer|null $jpegQuality
      * @throws \LogicException
      * @return array
      */
-    public function getConverted($assetFilename) {
+    public function getConverted($assetFilename, $customBreakpoints, $jpegQuality) {
+        if (is_array($customBreakpoints) && count($customBreakpoints) > 0) {
+            $this->breakpoints = $customBreakpoints;
+        }
+        if ($jpegQuality > 0) {
+            $this->jpegQuality = $jpegQuality;
+        }
         $image = $this->loadImageOrCreateNew($assetFilename);
         if (!$image) {
             throw new \LogicException('loadImageOrCreateNew failed to deliver Image');

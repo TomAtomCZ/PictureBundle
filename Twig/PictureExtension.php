@@ -27,13 +27,25 @@ class PictureExtension extends \Twig_Extension
         ];
     }
 
-    public function createPicture($assetFilename) {
+    /**
+     * @param string $assetFilename
+     * @param array|null $customBreakpoints
+     * @param integer|null $jpegQuality
+     * @return string
+     */
+    public function createPicture($assetFilename, $customBreakpoints = null, $jpegQuality = null) {
+        $converted = $this->imageResizer->getConverted($assetFilename, $customBreakpoints, $jpegQuality);
+        usort($converted, [$this, 'sortByBreakpoint']);
         $breakpoints = $this->imageResizer->getBreakpoints();
-        $converted = $this->imageResizer->getConverted($assetFilename);
+        if (is_array($customBreakpoints) && count($customBreakpoints) > 0) {
+            $breakpoints = $customBreakpoints;
+        }
         $result = '<picture>';
         $result .= '<source srcset="' . $assetFilename . '" media="(min-width: ' . (max($breakpoints) + 1) . 'px)">';
         foreach ($converted as $breakpoint) {
-            $result .= '<source srcset="' . $breakpoint['asset'] . '" media="(max-width: ' . $breakpoint['breakpoint'] . 'px)">';
+            if (in_array($breakpoint['breakpoint'], $breakpoints)) {
+                $result .= '<source srcset="' . $breakpoint['asset'] . '" media="(max-width: ' . $breakpoint['breakpoint'] . 'px)">';
+            }
         }
         $result .= '<img src="' . $assetFilename . '" alt="">';
         $result .= '</picture>';
@@ -42,5 +54,14 @@ class PictureExtension extends \Twig_Extension
 
     public function getName() {
         return 'tomatom_picture.twig.picture_extension';
+    }
+
+    /**
+     * @param array $a
+     * @param array $b
+     * @return integer
+     */
+    protected function sortByBreakpoint($a, $b) {
+        return $a['breakpoint'] - $b['breakpoint'];
     }
 }
