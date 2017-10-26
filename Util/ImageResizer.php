@@ -104,14 +104,17 @@ class ImageResizer {
      * @return Image
      */
     protected function checkForConvertedOrConvert(Image $image) {
-        if (!$image->getConverted() || count($image->getConverted()) !== count($this->breakpoints)) {
+        if (!$image->getConverted() || count($image->getConverted()) === 0) {
             $this->checkForDirectoryOrCreateNew();
             $fullImagePath = $image->getFullPath();
             if (!$fullImagePath) {
                 $fullImagePath = $this->getFullImagePath($image);
                 $image->setFullPath($fullImagePath);
             }
-            foreach ($this->breakpoints as $breakpoint) {
+        }
+        $breakpoints = $this->getUnconvertedBreakpoints($image);
+        if (count($breakpoints) > 0) {
+            foreach ($breakpoints as $breakpoint) {
                 $this->convertToBreakpoint($image, $breakpoint);
             }
         }
@@ -184,27 +187,59 @@ class ImageResizer {
         return $this->webSubdir;
     }
 
-    protected function convertToBreakpoint(Image $image, $breakpoint) {
+    /**
+     * @param Image $image
+     * @return array
+     */
+    protected function getUnconvertedBreakpoints(Image $image) {
+        if (!$image->getConverted() || count($image->getConverted()) == 0) {
+            return $this->breakpoints;
+        }
+        $unconverteds = [];
         $converteds = count($image->getConverted()) > 0 ? $image->getConverted() : [];
-        $exists = array_filter($converteds, function ($c) use ($breakpoint) {
+        foreach ($this->breakpoints as $breakpoint) {
+            if (!$this->isBreakpointConverted($converteds, $breakpoint)) {
+                $unconverteds[] = $breakpoint;
+            }
+        }
+        return $unconverteds;
+    }
+
+    /**
+     * @param array $convertedImages
+     * @param integer $breakpoint
+     * @return boolean
+     */
+    protected function isBreakpointConverted($convertedImages, $breakpoint) {
+        $exists = array_filter($convertedImages, function ($c) use ($breakpoint) {
             return $c['breakpoint'] === $breakpoint;
         });
-        if (count($exists) === 0) {
-            $fnx = $this->getFilenameAndExtensionFromPath($image->getOriginal());
-            $convertedFullPath = $this->convertedDir . '/' . $fnx[0] . '-' . md5(uniqid()) . '-' . $breakpoint . '.' . $fnx[1];
-            $converted = [
-                'breakpoint' => $breakpoint,
-                'path' => $convertedFullPath,
-                'asset' => $this->getConvertedAssetUrl($image, $convertedFullPath),
-            ];
-            $this->resizeImageExternally($image->getFullPath(), $convertedFullPath, $breakpoint, 0, false, true);
-            $converteds[] = $converted;
-            $image->setConverted($converteds);
-            try {
-                $this->em->flush();
-            } catch (\Exception $e) {
-                $this->container->get('logger')->error('ERROR FAILED TO FLUSH: ' . $e->getMessage());
-            }
+        if (count($exists) > 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param Image $image
+     * @param integer $breakpoint
+     */
+    protected function convertToBreakpoint(Image $image, $breakpoint) {
+        $converteds = count($image->getConverted()) > 0 ? $image->getConverted() : [];
+        $fnx = $this->getFilenameAndExtensionFromPath($image->getOriginal());
+        $convertedFullPath = $this->convertedDir . '/' . $fnx[0] . '-' . md5(uniqid()) . '-' . $breakpoint . '.' . $fnx[1];
+        $converted = [
+            'breakpoint' => $breakpoint,
+            'path' => $convertedFullPath,
+            'asset' => $this->getConvertedAssetUrl($image, $convertedFullPath),
+        ];
+        $this->resizeImageExternally($image->getFullPath(), $convertedFullPath, $breakpoint, 0, false, true);
+        $converteds[] = $converted;
+        $image->setConverted($converteds);
+        try {
+            $this->em->flush();
+        } catch (\Exception $e) {
+            $this->container->get('logger')->error('ERROR FAILED TO FLUSH: ' . $e->getMessage());
         }
     }
 
@@ -215,7 +250,6 @@ class ImageResizer {
      * @param integer $height
      * @param boolean $squareCrop
      * @param boolean $autoRotate
-     * @param integer $jpegQuality
      * @return string
      */
     protected function resizeImageExternally($fullImagePath, $newFullImagePath, $widthOrSize, $height = 0, $squareCrop = false, $autoRotate = true) {
