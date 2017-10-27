@@ -18,7 +18,7 @@
 
 * create project with Symfony framework
 
-* composer require tomatom/picture-bundle "1.2"
+* composer require tomatom/picture-bundle "1.3"
 
 * add bundle to __AppKernel.php:__
 ```php
@@ -64,6 +64,22 @@ parameters:
 {{ asset('path/to/asset.jpg') | picture(null, 99)) }}
 ```
 
+* you can retrieve converted images in PHP code too (in case you need to serve images from API, etc.), like this:
+```php
+// asset url - same as in Twig template
+$originalAssetUrl = $this->container->get('assets.packages')->getUrl('bundles/app/images/test.jpg');
+// get PictureHelper from container
+$pictureHelper = $this->container->get('tomatom_picture.util.picture_helper');
+
+// get array of all converted images for asset
+$allConveretedImages = $pictureHelper->getAllConverted($originalAssetUrl);
+
+// or specific image for breakpoint
+$convertedAssetUrl = $pictureHelper->getAssetUrl($originalAssetUrl, 1920);
+$convertedFilePath = $pictureHelper->getFilePath($originalAssetUrl, 1920);
+```
+
+
 ### Todo:
 
 - [x] jpeg quality as param
@@ -71,3 +87,4 @@ parameters:
 - [x] breakpoints as param in template
 - [ ] cmd for batch converting
 - [x] converting of images other than assets (like from 'web/uploads', etc)
+- [x] helper for retrieving converted images in controller / cmd / service..
