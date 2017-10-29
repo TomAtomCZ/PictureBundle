@@ -1,7 +1,7 @@
 services:
     tomatom_picture.util.picture_helper:
         class: TomAtom\PictureBundle\Util\PictureHelper
-        arguments: ["@doctrine.orm.default_entity_manager"]
+        arguments: ["@doctrine.orm.default_entity_manager", "@tomatom_picture.util.image_resizer"]
     tomatom_picture.util.image_resizer:
         class: TomAtom\PictureBundle\Util\ImageResizer
         arguments: ["@service_container"]

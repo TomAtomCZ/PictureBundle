@@ -3,11 +3,15 @@
 namespace TomAtom\PictureBundle\Util;
 
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\EntityNotFoundException;
 use TomAtom\PictureBundle\Entity\Image;
 
 
 class PictureHelper {
+    /**
+     * @var ImageResizer $ir
+     */
+    protected $ir;
+
     /**
      * @var EntityManager $em
      */
@@ -15,9 +19,11 @@ class PictureHelper {
 
     /**
      * PictureHelper constructor.
+     * @param ImageResizer $ir
      * @param EntityManager $em
      */
-    public function __construct(EntityManager $em) {
+    public function __construct(ImageResizer $ir, EntityManager $em) {
+        $this->ir = $ir;
         $this->em = $em;
     }
 
@@ -49,13 +55,13 @@ class PictureHelper {
 
     /**
      * @param string $assetUrl
-     * @throws EntityNotFoundException
-     * @return Image|null
+     * @return Image
      */
     protected function getImage($assetUrl) {
         $image = $this->em->getRepository(Image::class)->findOneBy(['original' => $assetUrl]);
         if (!$image) {
-            throw new EntityNotFoundException('Asset not known, is it converted?');
+            $this->ir->getConverted($assetUrl, null, null);
+            $image = $this->em->getRepository(Image::class)->findOneBy(['original' => $assetUrl]);
         }
         return $image;
     }
