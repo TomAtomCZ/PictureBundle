@@ -29,6 +29,16 @@ class PictureHelper {
 
     /**
      * @param string $assetUrl
+     * @param array|null $breakpoints
+     * @param integer|null $jpegQuality
+     * @return array
+     */
+    public function convert($assetUrl, $breakpoints = null, $jpegQuality = null) {
+        return $this->ir->getConverted($assetUrl, $breakpoints, $jpegQuality);
+    }
+
+    /**
+     * @param string $assetUrl
      * @param integer $breakpoint
      * @return string|null
      */

@@ -18,7 +18,7 @@
 
 * create project with Symfony framework
 
-* composer require tomatom/picture-bundle "1.3"
+* composer require tomatom/picture-bundle "1.4"
 
 * add bundle to __AppKernel.php:__
 ```php
@@ -61,7 +61,11 @@ parameters:
 {{ asset('path/to/asset.jpg') | picture([300, 600, 1200]) }}
 
 {# as filter with custom jpeg quality defined per image #}
-{{ asset('path/to/asset.jpg') | picture(null, 99)) }}
+{{ asset('path/to/asset.jpg') | picture(null, 99) }}
+
+
+{# use with SonataMedia images #}
+{{ mediaUrl(entity.media, 'reference') | picture }}
 ```
 
 * you can retrieve converted images in PHP code too (in case you need to serve images from API, etc.), like this:
@@ -77,6 +81,12 @@ $allConveretedImages = $pictureHelper->getAllConverted($originalAssetUrl);
 // or specific image for breakpoint
 $convertedAssetUrl = $pictureHelper->getAssetUrl($originalAssetUrl, 1920);
 $convertedFilePath = $pictureHelper->getFilePath($originalAssetUrl, 1920);
+
+// convert images if not exists and get array of converted images (for global breakpoints)
+$allConveretedImages = $pictureHelper->convert($originalAssetUrl);
+// convert images if not exists and get array of converted images (custom breakpoints and jpeg quality)
+$allConveretedImages = $pictureHelper->convert($originalAssetUrl, [300, 600, 900], 70);
+
 ```
 
 
@@ -88,3 +98,4 @@ $convertedFilePath = $pictureHelper->getFilePath($originalAssetUrl, 1920);
 - [ ] cmd for batch converting
 - [x] converting of images other than assets (like from 'web/uploads', etc)
 - [x] helper for retrieving converted images in controller / cmd / service..
+- [x] helper for SonataMedia image path

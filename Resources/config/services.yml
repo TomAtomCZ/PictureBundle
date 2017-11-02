@@ -3,10 +3,18 @@ services:
         class: TomAtom\PictureBundle\Util\PictureHelper
         arguments: ["@tomatom_picture.util.image_resizer", "@doctrine.orm.default_entity_manager"]
     tomatom_picture.util.image_resizer:
+        public: false
         class: TomAtom\PictureBundle\Util\ImageResizer
         arguments: ["@service_container"]
     tomatom_picture.twig.picture_extension:
+        public: false
         class: TomAtom\PictureBundle\Twig\PictureExtension
         arguments: ["@tomatom_picture.util.image_resizer"]
+        tags:
+          - { name: twig.extension }
+    tomatom_picture.twig.sonata_media_extension:
+        public: false
+        class: TomAtom\PictureBundle\Twig\SonataMediaExtension
+        arguments: ["@service_container", "@=service('service_container').has('sonata.media.manager.media') != null ? service('sonata.media.manager.media') : null"]
         tags:
           - { name: twig.extension }
