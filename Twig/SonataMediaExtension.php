@@ -24,7 +24,7 @@ class SonataMediaExtension extends \Twig_Extension
 
     public function getFunctions() {
         return [
-            'mediaUrl' => new \Twig_SimpleFunction($this, 'getMediaPublicUrl')
+            new \Twig_SimpleFunction('mediaUrl', [$this, 'getMediaPublicUrl']),
         ];
     }
 
